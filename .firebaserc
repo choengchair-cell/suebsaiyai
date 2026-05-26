@@ -1,0 +1,19 @@
+{
+  "projects": {
+    "default": "suebsaiyai-prod",
+    "staging": "suebsaiyai-staging",
+    "development": "suebsaiyai-dev"
+  },
+  "targets": {
+    "suebsaiyai-prod": {
+      "hosting": {
+        "prod": ["suebsaiyai-prod"]
+      }
+    },
+    "suebsaiyai-staging": {
+      "hosting": {
+        "staging": ["suebsaiyai-staging"]
+      }
+    }
+  }
+}

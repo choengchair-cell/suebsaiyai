@@ -1,0 +1,169 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helper Functions ───────────────────────────────────────────────────
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+
+    function hasAnyRole(roles) {
+      return isAuthenticated() && getUserData().role in roles;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    function isCommittee() {
+      return hasAnyRole(['committee', 'admin']);
+    }
+
+    function isTeacher() {
+      return hasAnyRole(['teacher', 'committee', 'admin']);
+    }
+
+    function isField() {
+      return isAuthenticated();
+    }
+
+    function inSameDistrict(districtId) {
+      return isAuthenticated() && getUserData().districtId == districtId;
+    }
+
+    function isValidStoryStatus(status) {
+      return status in ['draft', 'submitted', 'teacher_review', 'committee_review', 'approved', 'published', 'archived'];
+    }
+
+    function storyIsPublished() {
+      return resource.data.status == 'published';
+    }
+
+    // ─── Users ──────────────────────────────────────────────────────────────
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'districtId', 'createdAt'])
+        && request.resource.data.role == 'field';
+      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'uid', 'createdAt']))
+        || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─── Districts ───────────────────────────────────────────────────────────
+
+    match /districts/{districtId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ─── Taxonomies ──────────────────────────────────────────────────────────
+
+    match /taxonomies/{taxonomyId} {
+      allow read: if true;
+      allow create, update: if isCommittee();
+      allow delete: if isAdmin();
+    }
+
+    match /cultural_terms/{termId} {
+      allow read: if true;
+      allow create, update: if isTeacher();
+      allow delete: if isCommittee();
+    }
+
+    // ─── Stories ─────────────────────────────────────────────────────────────
+
+    match /stories/{storyId} {
+      // Public can read published stories
+      allow read: if storyIsPublished() || isAuthenticated();
+
+      // Field users can create stories
+      allow create: if isField()
+        && request.resource.data.authorId == request.auth.uid
+        && request.resource.data.status == 'draft'
+        && isValidStoryStatus(request.resource.data.status);
+
+      // Author can update draft stories only
+      allow update: if (isOwner(resource.data.authorId)
+          && resource.data.status == 'draft'
+          && request.resource.data.status in ['draft', 'submitted'])
+        // Teacher can move to teacher_review or back
+        || (isTeacher()
+          && resource.data.status in ['submitted', 'teacher_review']
+          && request.resource.data.status in ['submitted', 'teacher_review', 'committee_review'])
+        // Committee can approve/reject/publish
+        || (isCommittee()
+          && resource.data.status in ['committee_review', 'approved']
+          && request.resource.data.status in ['committee_review', 'approved', 'published', 'archived'])
+        // Admin can do anything
+        || isAdmin();
+
+      allow delete: if isOwner(resource.data.authorId) && resource.data.status == 'draft'
+        || isAdmin();
+    }
+
+    // ─── Story Versions ───────────────────────────────────────────────────────
+
+    match /story_versions/{versionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.createdBy == request.auth.uid;
+      allow update: if false; // Immutable — versions are never modified
+      allow delete: if isAdmin();
+    }
+
+    // ─── Reviews ─────────────────────────────────────────────────────────────
+
+    match /reviews/{reviewId} {
+      allow read: if isAuthenticated();
+      allow create: if isTeacher()
+        && request.resource.data.reviewerId == request.auth.uid;
+      allow update: if isOwner(resource.data.reviewerId) && !resource.data.isFinal
+        || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─── Media ───────────────────────────────────────────────────────────────
+
+    match /media/{mediaId} {
+      allow read: if true;
+      allow create: if isAuthenticated()
+        && request.resource.data.uploadedBy == request.auth.uid;
+      allow update: if isOwner(resource.data.uploadedBy) && !resource.data.isApproved
+        || isTeacher();
+      allow delete: if isOwner(resource.data.uploadedBy) || isAdmin();
+    }
+
+    // ─── AI Artifacts ─────────────────────────────────────────────────────────
+
+    match /ai_artifacts/{artifactId} {
+      allow read: if isAuthenticated();
+      allow create: if false; // Only Cloud Functions write AI artifacts
+      allow update: if false; // Immutable from client
+      allow delete: if isAdmin();
+    }
+
+    // ─── Audit Log ────────────────────────────────────────────────────────────
+
+    match /audit_log/{logId} {
+      allow read: if isAdmin();
+      allow create: if false; // Only Cloud Functions write audit logs
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
