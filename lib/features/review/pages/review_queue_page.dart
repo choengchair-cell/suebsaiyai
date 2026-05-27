@@ -8,7 +8,7 @@ import 'package:suebsaiyai/features/story/widgets/story_status_chip.dart';
 
 final _reviewQueueProvider = StreamProvider.autoDispose<List<StoryEntity>>((ref) {
   final user = ref.watch(currentUserProvider);
-  if (user == null) return const Stream.empty();
+  if (user == null) return Stream<List<StoryEntity>>.empty();
   final status = user.role.canPublish ? StoryStatus.committeeReview : StoryStatus.teacherReview;
   return ref.watch(storyRepositoryProvider).watchStoriesByStatus(status);
 });
