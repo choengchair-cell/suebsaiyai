@@ -187,13 +187,14 @@ class _LoginButton extends ConsumerWidget {
         onSelected: (v) async {
           switch (v) {
             case 'dashboard':
-              context.go(RouteConstants.dashboard);
+              if (context.mounted) context.go(RouteConstants.dashboard);
               break;
             case 'admin':
-              context.go(RouteConstants.adminPanel);
+              if (context.mounted) context.go(RouteConstants.adminPanel);
               break;
             case 'logout':
               await ref.read(authNotifierProvider.notifier).signOut();
+              if (context.mounted) context.go(RouteConstants.home);
               break;
           }
         },
