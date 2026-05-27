@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:suebsaiyai/application/providers/repository_providers.dart';
 import 'package:suebsaiyai/application/story/story_list_state.dart';
+import 'package:suebsaiyai/domain/entities/story_entity.dart';
 import 'package:suebsaiyai/domain/repositories/story_repository.dart';
 
 class PublishedStoriesNotifier extends StateNotifier<StoryListState> {
@@ -11,7 +12,7 @@ class PublishedStoriesNotifier extends StateNotifier<StoryListState> {
 
   final StoryRepository _repo;
   final String? districtId;
-  StreamSubscription? _sub;
+  StreamSubscription<List<StoryEntity>>? _sub;
 
   void _listen() {
     state = const StoryListLoading();

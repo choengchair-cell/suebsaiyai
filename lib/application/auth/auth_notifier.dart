@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:suebsaiyai/application/auth/auth_state.dart';
 import 'package:suebsaiyai/application/providers/repository_providers.dart';
+import 'package:suebsaiyai/domain/entities/user_entity.dart';
 import 'package:suebsaiyai/domain/repositories/auth_repository.dart';
 
 class AuthNotifier extends StateNotifier<AuthState> {
@@ -10,7 +11,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   final AuthRepository _repo;
-  StreamSubscription<dynamic>? _sub; // 👈 แก้ไข: กำหนดประเภทข้อมูลให้กับ StreamSubscription
+  StreamSubscription<UserEntity?>? _sub;
 
   void _init() {
     state = const AuthStateLoading();

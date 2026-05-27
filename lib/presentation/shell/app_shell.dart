@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:suebsaiyai/application/auth/auth_notifier.dart';
 import 'package:suebsaiyai/core/constants/route_constants.dart';
 import 'package:suebsaiyai/core/theme/app_colors.dart';
+import 'package:suebsaiyai/domain/entities/user_entity.dart';
 import 'package:suebsaiyai/domain/enums/user_role.dart';
 
 class AppShell extends ConsumerWidget {
@@ -31,7 +32,7 @@ class AppShell extends ConsumerWidget {
 // ─── GLASSMORPHISM NAVBAR ──────────────────────────────────────────────────────
 class _GlassNavBar extends ConsumerWidget implements PreferredSizeWidget {
   const _GlassNavBar({required this.user});
-  final dynamic user;
+  final UserEntity? user;
 
   @override
   Size get preferredSize => const Size.fromHeight(64);
@@ -92,11 +93,11 @@ class _GlassNavBar extends ConsumerWidget implements PreferredSizeWidget {
                       location.startsWith('/dashboard'), context),
                   const SizedBox(width: 32),
                 ],
-                _LoginButton(user: user, ref: ref, context: context),
+                _LoginButton(user: user),
               ] else
                 // สำหรับ Mobile
                 if (user != null)
-                  _LoginButton(user: user, ref: ref, context: context)
+                  _LoginButton(user: user)
                 else
                   IconButton(
                     icon: const Icon(Icons.menu, color: AppColors.goldLight),
@@ -128,20 +129,15 @@ class _GlassNavBar extends ConsumerWidget implements PreferredSizeWidget {
 
 // ─── LOGIN BUTTON ──────────────────────────────────────────────────────────────
 class _LoginButton extends ConsumerWidget {
-  const _LoginButton(
-      {required this.user, required this.ref, required this.context});
-  final dynamic user;
-  final WidgetRef ref;
-  final BuildContext context;
+  const _LoginButton({required this.user});
+  final UserEntity? user;
 
   @override
-  Widget build(BuildContext ctx, WidgetRef r) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (user != null) {
-      // แก้ไขปัญหา avoid_dynamic_calls โดยการจัดกลุ่มข้อมูลและระบุ Type ให้ชัดเจน
-      final userObj = user as dynamic;
-      final String rawName = userObj.displayName?.toString() ?? 'ผู้ใช้งาน';
-      final String displayName = rawName.split(' ').first;
-      final bool isAdmin = userObj.role == UserRole.admin;
+      final loggedInUser = user!;
+      final String displayName = loggedInUser.displayName.split(' ').first;
+      final bool isAdmin = loggedInUser.role == UserRole.admin;
 
       return PopupMenuButton<String>(
         color: const Color(0xFF100800),
@@ -204,7 +200,7 @@ class _LoginButton extends ConsumerWidget {
       );
     }
 
-    return _RoleLoginButton();
+    return const _RoleLoginButton();
   }
 
   Widget _roleMenuItem(IconData icon, String label,
@@ -218,6 +214,7 @@ class _LoginButton extends ConsumerWidget {
 }
 
 class _RoleLoginButton extends StatefulWidget {
+  const _RoleLoginButton();
   @override
   State<_RoleLoginButton> createState() => _RoleLoginButtonState();
 }
@@ -316,7 +313,7 @@ class _RoleLoginButtonState extends State<_RoleLoginButton> {
 // ─── BOTTOM NAV (mobile) ───────────────────────────────────────────────────────
 class _BottomNav extends ConsumerWidget {
   const _BottomNav({required this.user});
-  final dynamic user;
+  final UserEntity? user;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
