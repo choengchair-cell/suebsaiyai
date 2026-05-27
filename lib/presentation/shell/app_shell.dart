@@ -184,7 +184,7 @@ class _LoginButton extends ConsumerWidget {
                 color: AppColors.error),
           ),
         ],
-        onSelected: (v) {
+        onSelected: (v) async {
           switch (v) {
             case 'dashboard':
               context.go(RouteConstants.dashboard);
@@ -193,7 +193,7 @@ class _LoginButton extends ConsumerWidget {
               context.go(RouteConstants.adminPanel);
               break;
             case 'logout':
-              ref.read(authNotifierProvider.notifier).signOut();
+              await ref.read(authNotifierProvider.notifier).signOut();
               break;
           }
         },

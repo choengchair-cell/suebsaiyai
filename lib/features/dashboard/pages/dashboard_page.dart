@@ -22,7 +22,7 @@ class DashboardPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('แดชบอร์ด'),
         actions: [
-          IconButton(icon: const Icon(Icons.logout), onPressed: () => ref.read(authNotifierProvider.notifier).signOut(), tooltip: 'ออกจากระบบ'),
+          IconButton(icon: const Icon(Icons.logout), onPressed: () async { await ref.read(authNotifierProvider.notifier).signOut(); }, tooltip: 'ออกจากระบบ'),
         ],
       ),
       body: SingleChildScrollView(
