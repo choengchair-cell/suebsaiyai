@@ -81,14 +81,14 @@ class _GlassNavBar extends ConsumerWidget implements PreferredSizeWidget {
               const Spacer(),
               // Nav links (wide)
               if (MediaQuery.of(context).size.width >= 900) ...[
-                _NavLink('เรื่องเล่า', RouteConstants.explore,
+                _navLink('เรื่องเล่า', RouteConstants.explore,
                     location.startsWith('/explore'), context),
                 const SizedBox(width: 32),
-                _NavLink('ค้นหา', RouteConstants.search,
+                _navLink('ค้นหา', RouteConstants.search,
                     location.startsWith('/search'), context),
                 const SizedBox(width: 32),
                 if (user != null) ...[
-                  _NavLink('แดชบอร์ด', RouteConstants.dashboard,
+                  _navLink('แดชบอร์ด', RouteConstants.dashboard,
                       location.startsWith('/dashboard'), context),
                   const SizedBox(width: 32),
                 ],
@@ -110,7 +110,7 @@ class _GlassNavBar extends ConsumerWidget implements PreferredSizeWidget {
     );
   }
 
-  Widget _NavLink(
+  Widget _navLink(
       String label, String route, bool active, BuildContext context) {
     return GestureDetector(
       onTap: () => context.go(route),
@@ -138,6 +138,11 @@ class _LoginButton extends ConsumerWidget {
   @override
   Widget build(BuildContext ctx, WidgetRef r) {
     if (user != null) {
+      // ป้องกันการแครชด้วยการแปลง Type จาก dynamic เป็น String ให้ชัดเจน
+      final displayName = user.displayName != null 
+          ? (user.displayName as String).split(' ').first 
+          : 'ผู้ใช้งาน';
+
       return PopupMenuButton<String>(
         color: const Color(0xFF100800),
         shape: RoundedRectangleBorder(
@@ -155,207 +160,6 @@ class _LoginButton extends ConsumerWidget {
             const Icon(Icons.person_outline,
                 color: AppColors.goldLight, size: 16),
             const SizedBox(width: 6),
-            Text(user.displayName.split(' ').first,
+            Text(displayName,
                 style: GoogleFonts.sarabun(
-                    fontSize: 13, color: AppColors.goldLight)),
-            const SizedBox(width: 4),
-            const Icon(Icons.keyboard_arrow_down,
-                color: AppColors.goldLight, size: 14),
-          ]),
-        ),
-        itemBuilder: (_) => [
-          PopupMenuItem(
-            value: 'dashboard',
-            child: _roleMenuItem(Icons.dashboard_outlined, 'แดชบอร์ด'),
-          ),
-          if (user.role == UserRole.admin)
-            PopupMenuItem(
-              value: 'admin',
-              child: _roleMenuItem(Icons.admin_panel_settings_outlined, 'จัดการระบบ'),
-            ),
-          const PopupMenuDivider(),
-          PopupMenuItem(
-            value: 'logout',
-            child: _roleMenuItem(Icons.logout, 'ออกจากระบบ',
-                color: AppColors.error),
-          ),
-        ],
-        onSelected: (v) {
-          switch (v) {
-            case 'dashboard':
-              context.go(RouteConstants.dashboard);
-              break;
-            case 'admin':
-              context.go(RouteConstants.adminPanel);
-              break;
-            case 'logout':
-              ref.read(authNotifierProvider.notifier).signOut();
-              break;
-          }
-        },
-      );
-    }
-
-    return _RoleLoginButton();
-  }
-
-  Widget _roleMenuItem(IconData icon, String label,
-          {Color color = AppColors.textLight}) =>
-      Row(children: [
-        Icon(icon, color: color, size: 16),
-        const SizedBox(width: 10),
-        Text(label,
-            style: GoogleFonts.sarabun(fontSize: 13, color: color)),
-      ]);
-}
-
-class _RoleLoginButton extends StatefulWidget {
-  @override
-  State<_RoleLoginButton> createState() => _RoleLoginButtonState();
-}
-
-class _RoleLoginButtonState extends State<_RoleLoginButton> {
-  static const _roles = [
-    ('🎒', 'Field · นักศึกษา', 'บันทึกภูมิปัญญาภาคสนาม'),
-    ('👩‍🏫', 'Teacher · ครู สกร.', 'ตรวจสอบและจัดการข้อมูล'),
-    ('⚖️', 'Committee · คณะกรรมการ', 'อนุมัติและรับรองข้อมูล'),
-    ('🛡️', 'Admin · ผู้ดูแลระบบ', 'จัดการผู้ใช้และระบบทั้งหมด'),
-  ];
-
-  bool _open = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<int>(
-      color: const Color(0xFF0A0600),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: AppColors.gold.withOpacity(0.22)),
-      ),
-      offset: const Offset(0, 48),
-      onOpened: () => setState(() => _open = true),
-      onCanceled: () => setState(() => _open = false),
-      onSelected: (_) {
-        setState(() => _open = false);
-        context.go(RouteConstants.login);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.glassBorder),
-          borderRadius: BorderRadius.circular(2),
-          color: AppColors.primaryContainer,
-        ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          const Text('🔐', style: TextStyle(fontSize: 13)),
-          const SizedBox(width: 6),
-          Text('เข้าสู่ระบบ',
-              style: GoogleFonts.sarabun(
-                  fontSize: 13,
-                  color: AppColors.goldLight,
-                  letterSpacing: 0.4)),
-          const SizedBox(width: 4),
-          AnimatedRotation(
-            turns: _open ? 0.5 : 0,
-            duration: const Duration(milliseconds: 220),
-            child: const Icon(Icons.keyboard_arrow_down,
-                color: AppColors.goldLight, size: 14),
-          ),
-        ]),
-      ),
-      itemBuilder: (_) => [
-        PopupMenuItem(
-          enabled: false,
-          height: 36,
-          child: Text('เลือกประเภทผู้ใช้งาน',
-              style: GoogleFonts.sarabun(
-                  fontSize: 9,
-                  letterSpacing: 3,
-                  color: AppColors.textMuted)),
-        ),
-        ..._roles.asMap().entries.map((e) => PopupMenuItem<int>(
-              value: e.key,
-              child: Row(children: [
-                Text(e.value.$1,
-                    style: const TextStyle(fontSize: 20)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(e.value.$2,
-                            style: GoogleFonts.sarabun(
-                                fontSize: 13,
-                                color: AppColors.cream,
-                                fontWeight: FontWeight.w500)),
-                        Text(e.value.$3,
-                            style: GoogleFonts.sarabun(
-                                fontSize: 11,
-                                color: AppColors.textMuted)),
-                      ]),
-                ),
-              ]),
-            )),
-      ],
-    );
-  }
-}
-
-// ─── BOTTOM NAV (mobile) ───────────────────────────────────────────────────────
-class _BottomNav extends ConsumerWidget {
-  const _BottomNav({required this.user});
-  final dynamic user;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final location = GoRouterState.of(context).matchedLocation;
-
-    final destinations = [
-      const NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home),
-          label: 'หน้าหลัก'),
-      const NavigationDestination(
-          icon: Icon(Icons.explore_outlined),
-          selectedIcon: Icon(Icons.explore),
-          label: 'สำรวจ'),
-      const NavigationDestination(
-          icon: Icon(Icons.search_outlined),
-          selectedIcon: Icon(Icons.search),
-          label: 'ค้นหา'),
-      if (user != null)
-        const NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: 'ของฉัน')
-      else
-        const NavigationDestination(
-            icon: Icon(Icons.login_outlined),
-            selectedIcon: Icon(Icons.login),
-            label: 'เข้าสู่ระบบ'),
-    ];
-
-    int idx = 0;
-    if (location.startsWith('/explore')) idx = 1;
-    if (location.startsWith('/search')) idx = 2;
-    if (location.startsWith('/dashboard')) idx = 3;
-    if (location.startsWith('/login')) idx = user != null ? 0 : 3; // ป้องกัน idx เกินขนาดลิสต์
-
-    return NavigationBar(
-      selectedIndex: idx,
-      backgroundColor: AppColors.brownMid,
-      indicatorColor: AppColors.primaryContainer,
-      onDestinationSelected: (i) {
-        final routes = [
-          RouteConstants.home,
-          RouteConstants.explore,
-          RouteConstants.search,
-          if (user != null) RouteConstants.dashboard else RouteConstants.login,
-        ];
-        if (i < routes.length) context.go(routes[i]);
-      },
-      destinations: destinations,
-    );
-  }
-}
+                    fontSize
