@@ -1,83 +1,118 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:suebsaiyai/application/providers/repository_providers.dart';
-import 'package:suebsaiyai/application/story/story_editor_notifier.dart';
-import 'package:suebsaiyai/application/story/story_editor_state.dart';
-import 'package:suebsaiyai/core/constants/route_constants.dart';
-import 'package:suebsaiyai/core/utils/validators.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:suebsaiyai/application/story/story_editor_notifier.dart'; // 👈 เรียกใช้งาน Notifier
+import 'package:suebsaiyai/core/theme/app_colors.dart';
 
-class StoryEditPage extends ConsumerStatefulWidget {
+class StoryEditPage extends ConsumerWidget {
   const StoryEditPage({super.key, required this.storyId});
   final String storyId;
 
   @override
-  ConsumerState<StoryEditPage> createState() => _StoryEditPageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 👈 แก้ไข: เรียกใช้นามธรรมจัดสรรข้อมูลผ่านตัวแปรที่แท้จริงแทนของเดิมที่ขาดหายไป
+    final dynamic editorState = ref.watch(storyEditorNotifierProvider);
+    final editorNotifier = ref.read(storyEditorNotifierProvider.notifier);
 
-class _StoryEditPageState extends ConsumerState<StoryEditPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleCtrl = TextEditingController();
-  final _contentCtrl = TextEditingController();
-  bool _initialized = false;
-
-  @override
-  void dispose() {
-    _titleCtrl.dispose();
-    _contentCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _init() async {
-    if (_initialized) return;
-    _initialized = true;
-    final result = await ref.read(storyRepositoryProvider).getStory(widget.storyId);
-    result.fold(
-      (f) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(f.message))),
-      (story) {
-        ref.read(storyEditorProvider.notifier).initEdit(story);
-        _titleCtrl.text = story.title;
-        _contentCtrl.text = story.content;
-      },
-    );
-  }
-
-  Future<void> _save() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    final success = await ref.read(storyEditorProvider.notifier).save(title: _titleCtrl.text.trim(), content: _contentCtrl.text);
-    if (success && mounted) context.go(RouteConstants.myStories);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    _init();
-    final state = ref.watch(storyEditorProvider);
-    final isSaving = state.isSaving;
+    final bool isLoading = editorState.isLoading == true;
+    final String? errorMessage = editorState.errorMessage as String?;
+    final String title = editorState.title?.toString() ?? '';
+    final String content = editorState.content?.toString() ?? '';
 
     return Scaffold(
+      backgroundColor: AppColors.brownDark,
       appBar: AppBar(
-        title: const Text('แก้ไขเรื่อง'),
+        title: const Text('แก้ไขข้อมูลเรื่องเล่า'),
         actions: [
-          if (!isSaving) TextButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: const Text('บันทึก')),
-        ],
-      ),
-      body: state.isSaving && state.story == null
-          ? const Center(child: CircularProgressIndicator())
-          : Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    TextFormField(controller: _titleCtrl, decoration: const InputDecoration(labelText: 'ชื่อเรื่อง *'), validator: Validators.storyTitle),
-                    const SizedBox(height: 16),
-                    TextFormField(controller: _contentCtrl, decoration: const InputDecoration(labelText: 'เนื้อหา *', alignLabelWithHint: true), maxLines: 20, validator: Validators.storyContent),
-                    const SizedBox(height: 24),
-                    FilledButton(onPressed: isSaving ? null : _save, child: isSaving ? const CircularProgressIndicator(strokeWidth: 2, color: Colors.white) : const Text('บันทึก')),
-                  ],
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            )
+          else
+            TextButton(
+              onPressed: (title.isNotEmpty && content.isNotEmpty)
+                  ? () async {
+                      final success = await editorNotifier.saveStory(storyId: storyId);
+                      if (context.mounted && success) {
+                        context.pop();
+                      }
+                    }
+                  : null,
+              child: Text(
+                'อัปเดต',
+                style: GoogleFonts.sarabun(
+                  color: (title.isNotEmpty && content.isNotEmpty)
+                      ? AppColors.goldLight
+                      : AppColors.textMuted,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                if (errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.bottom(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: AppColors.error, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            errorMessage,
+                            style: GoogleFonts.sarabun(color: AppColors.error, fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                TextFormField(
+                  initialValue: title,
+                  style: GoogleFonts.notoSerifThai(fontSize: 22, color: AppColors.cream, fontWeight: FontWeight.bold),
+                  decoration: const InputDecoration(
+                    hintText: 'ชื่อเรื่องเล่าภูมิปัญญา...',
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                  onChanged: (val) => editorNotifier.updateTitle(val),
+                ),
+                const Divider(color: AppColors.gold, thickness: 0.5, height: 24),
+                TextFormField(
+                  initialValue: content,
+                  maxLines: null,
+                  style: GoogleFonts.sarabun(fontSize: 16, color: AppColors.textLight, height: 1.6),
+                  decoration: const InputDecoration(
+                    hintText: 'เนื้อหาภูมิปัญญาท้องถิ่น...',
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                  onChanged: (val) => editorNotifier.updateContent(val),
+                ),
+              ],
+            ),
+          ),
+          if (isLoading)
+            const Positioned.fill(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+        ],
+      ),
     );
   }
 }
