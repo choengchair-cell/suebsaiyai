@@ -3,47 +3,48 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary — เขียวไพร (Forest Green)
-  static const Color primary = Color(0xFF2D6A4F);
-  static const Color primaryLight = Color(0xFF52B788);
-  static const Color primaryDark = Color(0xFF1B4332);
-  static const Color primaryContainer = Color(0xFFD8F3DC);
+  // ─── Brand palette (matches landing.html CSS variables) ───────────────────
+  static const Color gold         = Color(0xFFC9922A);
+  static const Color goldLight    = Color(0xFFE8B94A);
+  static const Color goldPale     = Color(0xFFF5E6C0);
 
-  // Secondary — ทองคำ (Gold)
-  static const Color secondary = Color(0xFFB5883A);
-  static const Color secondaryLight = Color(0xFFD4A84B);
-  static const Color secondaryDark = Color(0xFF8B6914);
-  static const Color secondaryContainer = Color(0xFFFFF3CD);
+  static const Color brownDark    = Color(0xFF0D0800);
+  static const Color brownMid     = Color(0xFF1A0F00);
+  static const Color brownWarm    = Color(0xFF2D1A00);
+  static const Color cream        = Color(0xFFF7F0E3);
 
-  // Tertiary — น้ำตาลดิน (Earth Brown)
-  static const Color tertiary = Color(0xFF8B5E3C);
-  static const Color tertiaryContainer = Color(0xFFF3E8DD);
+  // ─── Glass / overlay ──────────────────────────────────────────────────────
+  static const Color glassBorder  = Color(0x47C9922A);
 
-  // Surface
-  static const Color surface = Color(0xFFFAF9F7);
-  static const Color surfaceVariant = Color(0xFFF0EDE8);
-  static const Color background = Color(0xFFFFFDF9);
+  // ─── Text ─────────────────────────────────────────────────────────────────
+  static const Color textPrimary  = cream;
+  static const Color textLight    = Color(0xD1F7F0E3);
+  static const Color textMuted    = Color(0x80F7F0E3);
+  static const Color textOnGold   = brownDark;
 
-  // Status
-  static const Color draft = Color(0xFF9E9E9E);
-  static const Color submitted = Color(0xFF2196F3);
-  static const Color underReview = Color(0xFFFF9800);
-  static const Color approved = Color(0xFF4CAF50);
-  static const Color published = Color(0xFF2D6A4F);
-  static const Color archived = Color(0xFF795548);
-  static const Color rejected = Color(0xFFF44336);
+  // ─── Status chips ─────────────────────────────────────────────────────────
+  static const Color draft        = Color(0xFF9E9E9E);
+  static const Color submitted    = Color(0xFF2196F3);
+  static const Color underReview  = Color(0xFFFF9800);
+  static const Color approved     = Color(0xFF4CAF50);
+  static const Color published    = goldLight;
+  static const Color archived     = Color(0xFF795548);
 
-  // Text
-  static const Color textPrimary = Color(0xFF1A1A1A);
-  static const Color textSecondary = Color(0xFF5C5C5C);
-  static const Color textDisabled = Color(0xFFAAAAAA);
-  static const Color textOnPrimary = Color(0xFFFFFFFF);
+  // ─── Semantic ─────────────────────────────────────────────────────────────
+  static const Color error            = Color(0xFFCF6679);
+  static const Color errorContainer   = Color(0xFF93000A);
+  static const Color surface          = brownMid;
+  static const Color background       = brownDark;
 
-  // AI indicator
-  static const Color aiAccent = Color(0xFF7B68EE);
-  static const Color aiContainer = Color(0xFFEDE9FF);
+  // ─── AI indicator ─────────────────────────────────────────────────────────
+  static const Color aiAccent         = Color(0xFFE8B94A);
+  static const Color aiContainer      = Color(0x26C9922A);
 
-  // Error
-  static const Color error = Color(0xFFB00020);
-  static const Color errorContainer = Color(0xFFFFDAD6);
+  // ─── Material scheme aliases ───────────────────────────────────────────────
+  static const Color primary          = gold;
+  static const Color primaryLight     = goldLight;
+  static const Color primaryContainer = Color(0x26C9922A);
+  static const Color onPrimary        = brownDark;
+  static const Color secondary        = goldPale;
+  static const Color onSecondary      = brownDark;
 }

@@ -13,7 +13,7 @@ class SuebsaiyaiApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'สืบสายใย',
-      theme: AppTheme.light,
+      theme: AppTheme.dark,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       locale: const Locale('th', 'TH'),

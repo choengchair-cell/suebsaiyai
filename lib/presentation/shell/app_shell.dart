@@ -1,6 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:suebsaiyai/application/auth/auth_notifier.dart';
 import 'package:suebsaiyai/core/constants/route_constants.dart';
 import 'package:suebsaiyai/core/theme/app_colors.dart';
@@ -13,113 +15,289 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    final isWide = MediaQuery.of(context).size.width >= 900;
 
-    if (isWide) {
-      return _WideShell(user: user, child: child);
-    }
-    return _NarrowShell(user: user, child: child);
-  }
-}
-
-class _WideShell extends ConsumerWidget {
-  const _WideShell({required this.user, required this.child});
-  final dynamic user;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      body: Row(
-        children: [
-          _SideNav(user: user),
-          const VerticalDivider(width: 1),
-          Expanded(child: child),
-        ],
-      ),
-    );
-  }
-}
-
-class _NarrowShell extends ConsumerWidget {
-  const _NarrowShell({required this.user, required this.child});
-  final dynamic user;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
+      backgroundColor: AppColors.brownDark,
+      extendBodyBehindAppBar: true,
+      appBar: _GlassNavBar(user: user),
       body: child,
-      bottomNavigationBar: _BottomNav(user: user),
+      bottomNavigationBar: MediaQuery.of(context).size.width < 900
+          ? _BottomNav(user: user)
+          : null,
     );
   }
 }
 
-class _SideNav extends ConsumerWidget {
-  const _SideNav({required this.user});
+// ─── GLASSMORPHISM NAVBAR ──────────────────────────────────────────────────────
+class _GlassNavBar extends ConsumerWidget implements PreferredSizeWidget {
+  const _GlassNavBar({required this.user});
   final dynamic user;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(64);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
 
-    return NavigationRail(
-      extended: MediaQuery.of(context).size.width >= 1200,
-      backgroundColor: AppColors.surface,
-      selectedIndex: _selectedIndex(location),
-      onDestinationSelected: (i) => _navigate(context, i, user),
-      leading: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          children: [
-            const FlutterLogo(size: 32),
-            const SizedBox(height: 4),
-            Text('สืบสายใย', style: Theme.of(context).textTheme.labelSmall),
-          ],
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          height: 64 + MediaQuery.of(context).padding.top,
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top,
+            left: 24,
+            right: 24,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.38),
+            border: Border(
+              bottom: BorderSide(color: AppColors.gold.withOpacity(0.12)),
+            ),
+          ),
+          child: Row(
+            children: [
+              // Logo
+              GestureDetector(
+                onTap: () => context.go(RouteConstants.home),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('สืบสายใย',
+                        style: GoogleFonts.notoSerifThai(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.goldLight)),
+                    Text('Suebsaiyai · Non Thai District',
+                        style: GoogleFonts.sarabun(
+                            fontSize: 10,
+                            color: AppColors.textMuted,
+                            letterSpacing: 1.2)),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              // Nav links (wide)
+              if (MediaQuery.of(context).size.width >= 900) ...[
+                _NavLink('เรื่องเล่า', RouteConstants.explore,
+                    location.startsWith('/explore'), context),
+                const SizedBox(width: 32),
+                _NavLink('ค้นหา', RouteConstants.search,
+                    location.startsWith('/search'), context),
+                const SizedBox(width: 32),
+                if (user != null) ...[
+                  _NavLink('แดชบอร์ด', RouteConstants.dashboard,
+                      location.startsWith('/dashboard'), context),
+                  const SizedBox(width: 32),
+                ],
+                _LoginButton(user: user, ref: ref, context: context),
+              ] else
+                // Mobile menu (hamburger — future: slide-in drawer)
+                IconButton(
+                  icon: const Icon(Icons.menu, color: AppColors.goldLight),
+                  onPressed: () {},
+                ),
+            ],
+          ),
         ),
       ),
-      destinations: _buildDestinations(user),
     );
   }
 
-  int _selectedIndex(String location) {
-    if (location == '/') return 0;
-    if (location.startsWith('/explore')) return 1;
-    if (location.startsWith('/search')) return 2;
-    if (location.startsWith('/dashboard')) return 3;
-    if (location.startsWith('/review')) return 4;
-    if (location.startsWith('/admin')) return 5;
-    return 0;
-  }
-
-  List<NavigationRailDestination> _buildDestinations(dynamic user) => [
-        const NavigationRailDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: Text('หน้าหลัก')),
-        const NavigationRailDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore), label: Text('สำรวจ')),
-        const NavigationRailDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search), label: Text('ค้นหา')),
-        if (user != null) ...[
-          const NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: Text('แดชบอร์ด')),
-          if (user.role.canReview)
-            const NavigationRailDestination(icon: Icon(Icons.rate_review_outlined), selectedIcon: Icon(Icons.rate_review), label: Text('ตรวจสอบ')),
-          if (user.role == UserRole.admin)
-            const NavigationRailDestination(icon: Icon(Icons.admin_panel_settings_outlined), selectedIcon: Icon(Icons.admin_panel_settings), label: Text('จัดการ')),
-        ],
-      ];
-
-  void _navigate(BuildContext context, int index, dynamic user) {
-    final routes = [
-      RouteConstants.home,
-      RouteConstants.explore,
-      RouteConstants.search,
-      if (user != null) ...[
-        RouteConstants.dashboard,
-        if (user.role.canReview) RouteConstants.reviewQueue,
-        if (user.role == UserRole.admin) RouteConstants.adminPanel,
-      ],
-    ];
-    if (index < routes.length) context.go(routes[index]);
+  Widget _NavLink(
+      String label, String route, bool active, BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.go(route),
+      child: Text(
+        label,
+        style: GoogleFonts.sarabun(
+          fontSize: 13,
+          color: active ? AppColors.goldLight : AppColors.textLight,
+          fontWeight: active ? FontWeight.w500 : FontWeight.w400,
+          letterSpacing: 0.6,
+        ),
+      ),
+    );
   }
 }
 
+// ─── LOGIN BUTTON ──────────────────────────────────────────────────────────────
+class _LoginButton extends ConsumerWidget {
+  const _LoginButton(
+      {required this.user, required this.ref, required this.context});
+  final dynamic user;
+  final WidgetRef ref;
+  final BuildContext context;
+
+  @override
+  Widget build(BuildContext ctx, WidgetRef r) {
+    if (user != null) {
+      return PopupMenuButton<String>(
+        color: const Color(0xFF100800),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: AppColors.gold.withOpacity(0.2)),
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.glassBorder),
+            borderRadius: BorderRadius.circular(2),
+            color: AppColors.primaryContainer,
+          ),
+          child: Row(children: [
+            const Icon(Icons.person_outline,
+                color: AppColors.goldLight, size: 16),
+            const SizedBox(width: 6),
+            Text(user.displayName.split(' ').first,
+                style: GoogleFonts.sarabun(
+                    fontSize: 13, color: AppColors.goldLight)),
+            const SizedBox(width: 4),
+            const Icon(Icons.keyboard_arrow_down,
+                color: AppColors.goldLight, size: 14),
+          ]),
+        ),
+        itemBuilder: (_) => [
+          PopupMenuItem(
+            value: 'dashboard',
+            child: _roleMenuItem(Icons.dashboard_outlined, 'แดชบอร์ด'),
+          ),
+          if (user.role == UserRole.admin)
+            PopupMenuItem(
+              value: 'admin',
+              child: _roleMenuItem(Icons.admin_panel_settings_outlined, 'จัดการระบบ'),
+            ),
+          const PopupMenuDivider(),
+          PopupMenuItem(
+            value: 'logout',
+            child: _roleMenuItem(Icons.logout, 'ออกจากระบบ',
+                color: AppColors.error),
+          ),
+        ],
+        onSelected: (v) {
+          switch (v) {
+            case 'dashboard':
+              context.go(RouteConstants.dashboard);
+            case 'admin':
+              context.go(RouteConstants.adminPanel);
+            case 'logout':
+              ref.read(authNotifierProvider.notifier).signOut();
+          }
+        },
+      );
+    }
+
+    // Not logged in — role-select dropdown
+    return _RoleLoginButton();
+  }
+
+  Widget _roleMenuItem(IconData icon, String label,
+          {Color color = AppColors.textLight}) =>
+      Row(children: [
+        Icon(icon, color: color, size: 16),
+        const SizedBox(width: 10),
+        Text(label,
+            style:
+                GoogleFonts.sarabun(fontSize: 13, color: color)),
+      ]);
+}
+
+class _RoleLoginButton extends StatefulWidget {
+  @override
+  State<_RoleLoginButton> createState() => _RoleLoginButtonState();
+}
+
+class _RoleLoginButtonState extends State<_RoleLoginButton> {
+  static const _roles = [
+    ('🎒', 'Field · นักศึกษา', 'บันทึกภูมิปัญญาภาคสนาม'),
+    ('👩‍🏫', 'Teacher · ครู สกร.', 'ตรวจสอบและจัดการข้อมูล'),
+    ('⚖️', 'Committee · คณะกรรมการ', 'อนุมัติและรับรองข้อมูล'),
+    ('🛡️', 'Admin · ผู้ดูแลระบบ', 'จัดการผู้ใช้และระบบทั้งหมด'),
+  ];
+
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<int>(
+      color: const Color(0xFF0A0600),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(color: AppColors.gold.withOpacity(0.22)),
+      ),
+      offset: const Offset(0, 48),
+      onOpened: () => setState(() => _open = true),
+      onCanceled: () => setState(() => _open = false),
+      onSelected: (_) {
+        setState(() => _open = false);
+        context.go(RouteConstants.login);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.glassBorder),
+          borderRadius: BorderRadius.circular(2),
+          color: AppColors.primaryContainer,
+        ),
+        child: Row(children: [
+          const Text('🔐', style: TextStyle(fontSize: 13)),
+          const SizedBox(width: 6),
+          Text('เข้าสู่ระบบ',
+              style: GoogleFonts.sarabun(
+                  fontSize: 13,
+                  color: AppColors.goldLight,
+                  letterSpacing: 0.4)),
+          const SizedBox(width: 4),
+          AnimatedRotation(
+            turns: _open ? 0.5 : 0,
+            duration: const Duration(milliseconds: 220),
+            child: const Icon(Icons.keyboard_arrow_down,
+                color: AppColors.goldLight, size: 14),
+          ),
+        ]),
+      ),
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          enabled: false,
+          height: 36,
+          child: Text('เลือกประเภทผู้ใช้งาน',
+              style: GoogleFonts.sarabun(
+                  fontSize: 9,
+                  letterSpacing: 3,
+                  color: AppColors.textMuted)),
+        ),
+        ..._roles.asMap().entries.map((e) => PopupMenuItem<int>(
+              value: e.key,
+              child: Row(children: [
+                Text(e.value.$1,
+                    style: const TextStyle(fontSize: 20)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(e.value.$2,
+                            style: GoogleFonts.sarabun(
+                                fontSize: 13,
+                                color: AppColors.cream,
+                                fontWeight: FontWeight.w500)),
+                        Text(e.value.$3,
+                            style: GoogleFonts.sarabun(
+                                fontSize: 11,
+                                color: AppColors.textMuted)),
+                      ]),
+                ),
+              ]),
+            )),
+      ],
+    );
+  }
+}
+
+// ─── BOTTOM NAV (mobile) ───────────────────────────────────────────────────────
 class _BottomNav extends ConsumerWidget {
   const _BottomNav({required this.user});
   final dynamic user;
@@ -127,31 +305,46 @@ class _BottomNav extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
-    final selectedIndex = _selectedIndex(location);
+
+    final destinations = [
+      const NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home),
+          label: 'หน้าหลัก'),
+      const NavigationDestination(
+          icon: Icon(Icons.explore_outlined),
+          selectedIcon: Icon(Icons.explore),
+          label: 'สำรวจ'),
+      const NavigationDestination(
+          icon: Icon(Icons.search_outlined),
+          selectedIcon: Icon(Icons.search),
+          label: 'ค้นหา'),
+      if (user != null)
+        const NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'ของฉัน'),
+    ];
+
+    int idx = 0;
+    if (location.startsWith('/explore')) idx = 1;
+    if (location.startsWith('/search')) idx = 2;
+    if (location.startsWith('/dashboard')) idx = 3;
 
     return NavigationBar(
-      selectedIndex: selectedIndex,
-      onDestinationSelected: (i) => _navigate(context, i, user),
-      destinations: [
-        const NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'หน้าหลัก'),
-        const NavigationDestination(icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore), label: 'สำรวจ'),
-        const NavigationDestination(icon: Icon(Icons.search_outlined), selectedIcon: Icon(Icons.search), label: 'ค้นหา'),
-        if (user != null)
-          const NavigationDestination(icon: Icon(Icons.dashboard_outlined), selectedIcon: Icon(Icons.dashboard), label: 'ของฉัน'),
-      ],
+      selectedIndex: idx,
+      backgroundColor: AppColors.brownMid,
+      indicatorColor: AppColors.primaryContainer,
+      onDestinationSelected: (i) {
+        final routes = [
+          RouteConstants.home,
+          RouteConstants.explore,
+          RouteConstants.search,
+          if (user != null) RouteConstants.dashboard,
+        ];
+        if (i < routes.length) context.go(routes[i]);
+      },
+      destinations: destinations,
     );
-  }
-
-  int _selectedIndex(String location) {
-    if (location == '/') return 0;
-    if (location.startsWith('/explore')) return 1;
-    if (location.startsWith('/search')) return 2;
-    if (location.startsWith('/dashboard')) return 3;
-    return 0;
-  }
-
-  void _navigate(BuildContext context, int index, dynamic user) {
-    final routes = [RouteConstants.home, RouteConstants.explore, RouteConstants.search, if (user != null) RouteConstants.dashboard];
-    if (index < routes.length) context.go(routes[index]);
   }
 }
