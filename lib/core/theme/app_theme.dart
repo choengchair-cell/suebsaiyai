@@ -1,120 +1,107 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:suebsaiyai/core/theme/app_colors.dart';
-import 'package:suebsaiyai/core/theme/app_typography.dart';
 
 class AppTheme {
-  AppTheme._();
-
-  static ThemeData get dark => ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorScheme: const ColorScheme.dark(
-          primary: AppColors.gold,
-          onPrimary: AppColors.textOnGold,
-          primaryContainer: AppColors.primaryContainer,
-          secondary: AppColors.goldLight,
-          onSecondary: AppColors.textOnGold,
-          surface: AppColors.brownMid,
-          onSurface: AppColors.cream,
-          background: AppColors.brownDark,
-          onBackground: AppColors.cream,
-          error: AppColors.error,
-          errorContainer: AppColors.errorContainer,
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: AppColors.brownDark,
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.gold,
+        onPrimary: AppColors.brownDark,
+        secondary: AppColors.goldLight,
+        surface: AppColors.brownDark, // 👈 แก้ไขจาก background
+        onSurface: AppColors.textLight, // 👈 แก้ไขจาก onBackground
+        error: AppColors.error,
+      ),
+      textTheme: TextTheme(
+        headlineMedium: GoogleFonts.notoSerifThai(
+          color: AppColors.goldLight,
+          fontWeight: FontWeight.bold,
         ),
-        scaffoldBackgroundColor: AppColors.brownDark,
-        textTheme: AppTypography.textTheme,
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.transparent,
-          foregroundColor: AppColors.cream,
-          elevation: 0,
-          centerTitle: false,
-          titleTextStyle: AppTypography.textTheme.titleLarge?.copyWith(
-            color: AppColors.goldLight,
-            fontFamily: 'NotoSerifThai',
-          ),
+        bodyLarge: GoogleFonts.sarabun(color: AppColors.textLight),
+        bodyMedium: GoogleFonts.sarabun(color: AppColors.textLight),
+        labelLarge: GoogleFonts.sarabun(color: AppColors.goldLight),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.goldLight),
+        titleTextStyle: GoogleFonts.notoSerifThai(
+          color: AppColors.goldLight,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
         ),
-        cardTheme: CardTheme(
-          elevation: 0,
-          color: AppColors.brownMid,
+      ),
+      cardTheme: CardTheme(
+        color: AppColors.brownMid,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: AppColors.gold.withOpacity(0.1)),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.black.withOpacity(0.2),
+        hintStyle: GoogleFonts.sarabun(color: AppColors.textMuted, fontSize: 14),
+        labelStyle: GoogleFonts.sarabun(color: AppColors.goldLight, fontSize: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.gold.withOpacity(0.3)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: AppColors.gold.withOpacity(0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: AppColors.gold), // 👈 เติม const
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.gold,
+          foregroundColor: AppColors.brownDark,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), // 👈 เติม const
           shape: RoundedRectangleBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(4)),
-            side: BorderSide(color: AppColors.glassBorder.withOpacity(0.4)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          textStyle: GoogleFonts.sarabun(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        filledButtonTheme: FilledButtonThemeData(
-          style: FilledButton.styleFrom(
-            backgroundColor: AppColors.gold,
-            foregroundColor: AppColors.textOnGold,
-            textStyle: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.04),
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(2))),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.cream,
-            side: BorderSide(color: AppColors.cream.withOpacity(0.3)),
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(2))),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: AppColors.cream.withOpacity(0.06),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
-            borderSide: BorderSide(color: AppColors.gold.withOpacity(0.2)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
-            borderSide: BorderSide(color: AppColors.gold.withOpacity(0.2)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
-            borderSide: const BorderSide(color: AppColors.gold),
-          ),
-          labelStyle: const TextStyle(color: AppColors.gold, fontSize: 12, letterSpacing: 1.5),
-          hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 14),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        ),
-        dividerTheme: DividerThemeData(
-          color: AppColors.gold.withOpacity(0.15),
-          thickness: 1,
-        ),
-        chipTheme: ChipThemeData(
-          backgroundColor: AppColors.primaryContainer,
-          labelStyle: const TextStyle(color: AppColors.goldLight, fontSize: 11),
-          side: BorderSide(color: AppColors.glassBorder),
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        ),
-        navigationRailTheme: const NavigationRailThemeData(
-          backgroundColor: AppColors.brownMid,
-          selectedIconTheme: IconThemeData(color: AppColors.goldLight),
-          unselectedIconTheme: IconThemeData(color: AppColors.textMuted),
-          selectedLabelTextStyle: TextStyle(color: AppColors.goldLight, fontSize: 12),
-          unselectedLabelTextStyle: TextStyle(color: AppColors.textMuted, fontSize: 12),
-          indicatorColor: AppColors.primaryContainer,
-        ),
-        navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: AppColors.brownMid,
-          indicatorColor: AppColors.primaryContainer,
-          iconTheme: MaterialStateProperty.resolveWith((states) => IconThemeData(
-            color: states.contains(MaterialState.selected) ? AppColors.goldLight : AppColors.textMuted,
-          )),
-          labelTextStyle: MaterialStateProperty.resolveWith((states) => TextStyle(
-            color: states.contains(MaterialState.selected) ? AppColors.goldLight : AppColors.textMuted,
-            fontSize: 11,
-          )),
-        ),
-        snackBarTheme: SnackBarThemeData(
-          backgroundColor: AppColors.brownMid,
-          contentTextStyle: const TextStyle(color: AppColors.cream),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.goldLight,
+          side: const BorderSide(color: AppColors.goldLight), // 👈 เติม const
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-            side: const BorderSide(color: AppColors.glassBorder),
+            borderRadius: BorderRadius.circular(8),
           ),
-          behavior: SnackBarBehavior.floating,
+          textStyle: GoogleFonts.sarabun(fontSize: 14),
         ),
-      );
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.brownMid,
+        indicatorColor: AppColors.primaryContainer,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) { // 👈 เปลี่ยนเป็น WidgetStateProperty
+          if (states.contains(WidgetState.selected)) { // 👈 เปลี่ยนเป็น WidgetState
+            return GoogleFonts.sarabun(color: AppColors.goldLight, fontSize: 12, fontWeight: FontWeight.bold);
+          }
+          return GoogleFonts.sarabun(color: AppColors.textMuted, fontSize: 12);
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) { // 👈 เปลี่ยนเป็น WidgetStateProperty
+          if (states.contains(WidgetState.selected)) { // 👈 เปลี่ยนเป็น WidgetState
+            return const IconThemeData(color: AppColors.goldLight);
+          }
+          return const IconThemeData(color: AppColors.textMuted);
+        }),
+      ),
+    );
+  }
 }
