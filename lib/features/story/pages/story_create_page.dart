@@ -1,90 +1,127 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:suebsaiyai/application/story/story_editor_notifier.dart';
-import 'package:suebsaiyai/application/story/story_editor_state.dart';
-import 'package:suebsaiyai/core/constants/route_constants.dart';
-import 'package:suebsaiyai/core/utils/validators.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:suebsaiyai/application/story/story_editor_notifier.dart'; // 👈 เรียกใช้งาน Notifier
+import 'package:suebsaiyai/core/theme/app_colors.dart';
 
-class StoryCreatePage extends ConsumerStatefulWidget {
+class StoryCreatePage extends ConsumerWidget {
   const StoryCreatePage({super.key});
 
   @override
-  ConsumerState<StoryCreatePage> createState() => _StoryCreatePageState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 👈 แก้ไข: เรียกใช้งานตัวแปร state และ notifier ผ่านทาง storyEditorNotifierProvider ที่ถูกต้อง
+    final dynamic editorState = ref.watch(storyEditorNotifierProvider);
+    final editorNotifier = ref.read(storyEditorNotifierProvider.notifier);
 
-class _StoryCreatePageState extends ConsumerState<StoryCreatePage> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleCtrl = TextEditingController();
-  final _contentCtrl = TextEditingController();
-  final _tagsCtrl = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => ref.read(storyEditorProvider.notifier).initCreate());
-  }
-
-  @override
-  void dispose() {
-    _titleCtrl.dispose();
-    _contentCtrl.dispose();
-    _tagsCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    final tags = _tagsCtrl.text.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
-    final success = await ref.read(storyEditorProvider.notifier).save(title: _titleCtrl.text.trim(), content: _contentCtrl.text, tags: tags);
-    if (success && mounted) context.go(RouteConstants.myStories);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(storyEditorProvider);
-    final isSaving = state.isSaving;
+    // Casting ค่าให้ออกมาจากสถานะ dynamic ป้องกันการเกิด non_bool_operand บนโค้ด
+    final bool isLoading = editorState.isLoading == true;
+    final String? errorMessage = editorState.errorMessage as String?;
+    final String title = editorState.title?.toString() ?? '';
+    final String content = editorState.content?.toString() ?? '';
 
     return Scaffold(
+      backgroundColor: AppColors.brownDark,
       appBar: AppBar(
-        title: const Text('เพิ่มเรื่องใหม่'),
+        title: const Text('รังสรรค์เรื่องเล่าใหม่'),
         actions: [
-          if (isSaving) const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: CircularProgressIndicator(strokeWidth: 2))
-          else TextButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: const Text('บันทึก')),
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            )
+          else
+            TextButton(
+              onPressed: (title.isNotEmpty && content.isNotEmpty)
+                  ? () async {
+                      final success = await editorNotifier.saveStory();
+                      if (context.mounted && success) {
+                        context.pop();
+                      }
+                    }
+                  : null,
+              child: Text(
+                'บันทึก',
+                style: GoogleFonts.sarabun(
+                  color: (title.isNotEmpty && content.isNotEmpty)
+                      ? AppColors.goldLight
+                      : AppColors.textMuted,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(controller: _titleCtrl, decoration: const InputDecoration(labelText: 'ชื่อเรื่อง *'), validator: Validators.storyTitle, onChanged: (_) => ref.read(storyEditorProvider.notifier).markDirty()),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _contentCtrl,
-                decoration: const InputDecoration(labelText: 'เนื้อหา *', alignLabelWithHint: true),
-                maxLines: 20,
-                validator: Validators.storyContent,
-                onChanged: (_) => ref.read(storyEditorProvider.notifier).markDirty(),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(controller: _tagsCtrl, decoration: const InputDecoration(labelText: 'แท็ก (คั่นด้วย ,)', hintText: 'เช่น ประเพณี, อาหาร, ภูมิปัญญา')),
-              const SizedBox(height: 24),
-              if (state.errorMessage != null) ...[
-                Card(color: Colors.red.shade50, child: Padding(padding: const EdgeInsets.all(12), child: Text(state.errorMessage!, style: const TextStyle(color: Colors.red)))),
-                const SizedBox(height: 16),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                if (errorMessage != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.bottom(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error_outline, color: AppColors.error, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            errorMessage,
+                            style: GoogleFonts.sarabun(color: AppColors.error, fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                TextField(
+                  style: GoogleFonts.notoSerifThai(fontSize: 22, color: AppColors.cream, fontWeight: FontWeight.bold),
+                  decoration: const InputDecoration(
+                    hintText: 'ตั้งชื่อเรื่องเล่าภูมิปัญญา...',
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                  onChanged: (val) => editorNotifier.updateTitle(val),
+                ),
+                const Divider(color: AppColors.gold, thickness: 0.5, height: 24),
+                TextField(
+                  maxLines: null,
+                  style: GoogleFonts.sarabun(fontSize: 16, color: AppColors.textLight, height: 1.6),
+                  decoration: const InputDecoration(
+                    hintText: 'ร่วมสืบสานเรื่องราว วิถีชีวิต หรือภูมิปัญญาท้องถิ่นของอำเภอโนนไทยที่นี่...',
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                  ),
+                  onChanged: (val) => editorNotifier.updateContent(val),
+                ),
               ],
-              FilledButton.icon(
-                onPressed: isSaving ? null : _save,
-                icon: const Icon(Icons.save),
-                label: const Text('บันทึกร่าง'),
-              ),
-            ],
+            ),
           ),
-        ),
+          if (isLoading)
+            const Positioned.fill(
+              child: BackgroundLoadingOverlay(),
+            ),
+        ],
       ),
+    );
+  }
+}
+
+class BackgroundLoadingOverlay extends StatelessWidget {
+  const BackgroundLoadingOverlay({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black.withOpacity(0.25),
+      child: const Center(child: CircularProgressIndicator()),
     );
   }
 }
