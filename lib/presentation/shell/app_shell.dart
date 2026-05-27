@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -184,17 +185,16 @@ class _LoginButton extends ConsumerWidget {
                 color: AppColors.error),
           ),
         ],
-        onSelected: (v) async {
+        onSelected: (v) {
           switch (v) {
             case 'dashboard':
-              if (context.mounted) context.go(RouteConstants.dashboard);
+              context.go(RouteConstants.dashboard);
               break;
             case 'admin':
-              if (context.mounted) context.go(RouteConstants.adminPanel);
+              context.go(RouteConstants.adminPanel);
               break;
             case 'logout':
-              await ref.read(authNotifierProvider.notifier).signOut();
-              if (context.mounted) context.go(RouteConstants.home);
+              unawaited(ref.read(authNotifierProvider.notifier).signOut());
               break;
           }
         },
