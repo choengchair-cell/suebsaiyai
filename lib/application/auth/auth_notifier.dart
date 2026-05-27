@@ -10,7 +10,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   final AuthRepository _repo;
-  StreamSubscription? _sub;
+  StreamSubscription<dynamic>? _sub; // 👈 แก้ไข: กำหนดประเภทข้อมูลให้กับ StreamSubscription
 
   void _init() {
     state = const AuthStateLoading();
