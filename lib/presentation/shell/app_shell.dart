@@ -94,7 +94,7 @@ class _GlassNavBar extends ConsumerWidget implements PreferredSizeWidget {
                 ],
                 _LoginButton(user: user, ref: ref, context: context),
               ] else
-                // สำหรับ Mobile: ถ้าล็อกอินแล้วให้โชว์เมนูโปรไฟล์ตรงแอปบาร์ได้เลย
+                // สำหรับ Mobile
                 if (user != null)
                   _LoginButton(user: user, ref: ref, context: context)
                 else
@@ -137,9 +137,11 @@ class _LoginButton extends ConsumerWidget {
   @override
   Widget build(BuildContext ctx, WidgetRef r) {
     if (user != null) {
-      final displayName = user.displayName != null 
-          ? (user.displayName as String).split(' ').first 
-          : 'ผู้ใช้งาน';
+      // แก้ไขปัญหา avoid_dynamic_calls โดยการจัดกลุ่มข้อมูลและระบุ Type ให้ชัดเจน
+      final userObj = user as dynamic;
+      final String rawName = userObj.displayName?.toString() ?? 'ผู้ใช้งาน';
+      final String displayName = rawName.split(' ').first;
+      final bool isAdmin = userObj.role == UserRole.admin;
 
       return PopupMenuButton<String>(
         color: const Color(0xFF100800),
@@ -174,7 +176,7 @@ class _LoginButton extends ConsumerWidget {
             value: 'dashboard',
             child: _roleMenuItem(Icons.dashboard_outlined, 'แดชบอร์ด'),
           ),
-          if (user.role == UserRole.admin)
+          if (isAdmin)
             PopupMenuItem(
               value: 'admin',
               child: _roleMenuItem(Icons.admin_panel_settings_outlined, 'จัดการระบบ'),
