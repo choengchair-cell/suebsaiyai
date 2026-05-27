@@ -11,7 +11,7 @@ class PublishedStoriesNotifier extends StateNotifier<StoryListState> {
 
   final StoryRepository _repo;
   final String? districtId;
-  StreamSubscription<dynamic>? _sub; // 👈 แก้ไข: กำหนดประเภทข้อมูลให้กับ StreamSubscription 
+  StreamSubscription<dynamic>? _sub; // 👈 แก้ไข: กำหนดประเภทข้อมูลให้กับ StreamSubscription
 
   void _listen() {
     state = const StoryListLoading();
