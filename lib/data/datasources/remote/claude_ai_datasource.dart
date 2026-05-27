@@ -38,7 +38,7 @@ $storyContent
     final response = await _sendRequest(prompt);
     try {
       final cleaned = response.trim().replaceAll(RegExp(r'^```json\n?'), '').replaceAll(RegExp(r'\n?```$'), '');
-      final decoded = jsonDecode(cleaned) as List;
+      final decoded = jsonDecode(cleaned) as List<dynamic>;
       return decoded.cast<String>();
     } catch (_) {
       return [];
@@ -66,7 +66,8 @@ $storyContent
         },
       );
 
-      final content = response.data['content'] as List;
+      final responseData = response.data as Map<String, dynamic>;
+      final content = responseData['content'] as List<dynamic>;
       if (content.isEmpty) throw const AppException('Empty AI response');
       return (content.first as Map<String, dynamic>)['text'] as String;
     } on DioException catch (e) {

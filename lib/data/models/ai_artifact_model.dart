@@ -42,7 +42,7 @@ class AiArtifactModel {
       validatedBy: data['validatedBy'] as String?,
       validatedAt: (data['validatedAt'] as Timestamp?)?.toDate(),
       confidence: (data['confidence'] as num?)?.toDouble(),
-      metadata: Map<String, dynamic>.from(data['metadata'] as Map? ?? {}),
+      metadata: Map<String, dynamic>.from(data['metadata'] as Map<String, dynamic>? ?? {}),
     );
   }
 

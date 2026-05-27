@@ -57,7 +57,7 @@ class MediaModel {
       width: data['width'] as int?,
       height: data['height'] as int?,
       isApproved: data['isApproved'] as bool? ?? false,
-      metadata: Map<String, dynamic>.from(data['metadata'] as Map? ?? {}),
+      metadata: Map<String, dynamic>.from(data['metadata'] as Map<String, dynamic>? ?? {}),
     );
   }
 
