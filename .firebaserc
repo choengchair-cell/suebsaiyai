@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "seubsaiyai",
+    "staging": "seubsaiyai",
+    "development": "seubsaiyai"
+  },
+  "targets": {
+    "seubsaiyai": {
+      "hosting": {
+        "prod": ["seubsaiyai"]
+      }
+    }
+  }
+}
