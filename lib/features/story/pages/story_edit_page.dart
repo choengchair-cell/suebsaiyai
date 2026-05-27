@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:suebsaiyai/application/story/story_editor_notifier.dart'; // 👈 เรียกใช้งาน Notifier
+import 'package:suebsaiyai/application/story/story_editor_notifier.dart';
+import 'package:suebsaiyai/application/story/story_editor_state.dart';
 import 'package:suebsaiyai/core/theme/app_colors.dart';
 
 class StoryEditPage extends ConsumerWidget {
@@ -11,14 +12,13 @@ class StoryEditPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 👈 แก้ไข: เรียกใช้นามธรรมจัดสรรข้อมูลผ่านตัวแปรที่แท้จริงแทนของเดิมที่ขาดหายไป
-    final dynamic editorState = ref.watch(storyEditorNotifierProvider);
+    final StoryEditorState editorState = ref.watch(storyEditorNotifierProvider);
     final editorNotifier = ref.read(storyEditorNotifierProvider.notifier);
 
-    final bool isLoading = editorState.isLoading == true;
-    final String? errorMessage = editorState.errorMessage as String?;
-    final String title = editorState.title?.toString() ?? '';
-    final String content = editorState.content?.toString() ?? '';
+    final bool isLoading = editorState.isSaving;
+    final String? errorMessage = editorState.errorMessage;
+    final String title = editorState.title;
+    final String content = editorState.content;
 
     return Scaffold(
       backgroundColor: AppColors.brownDark,
@@ -61,7 +61,7 @@ class StoryEditPage extends ConsumerWidget {
                 if (errorMessage != null)
                   Container(
                     padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.bottom(16),
+                    margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: AppColors.error.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),

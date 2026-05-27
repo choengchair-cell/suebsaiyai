@@ -9,6 +9,8 @@ class StoryEditorState extends Equatable {
     this.mode = EditorMode.create,
     this.isSaving = false,
     this.isDirty = false,
+    this.title = '',
+    this.content = '',
     this.errorMessage,
     this.successMessage,
   });
@@ -17,6 +19,8 @@ class StoryEditorState extends Equatable {
   final EditorMode mode;
   final bool isSaving;
   final bool isDirty;
+  final String title;
+  final String content;
   final String? errorMessage;
   final String? successMessage;
 
@@ -25,6 +29,8 @@ class StoryEditorState extends Equatable {
     EditorMode? mode,
     bool? isSaving,
     bool? isDirty,
+    String? title,
+    String? content,
     String? errorMessage,
     String? successMessage,
   }) =>
@@ -33,10 +39,13 @@ class StoryEditorState extends Equatable {
         mode: mode ?? this.mode,
         isSaving: isSaving ?? this.isSaving,
         isDirty: isDirty ?? this.isDirty,
+        title: title ?? this.title,
+        content: content ?? this.content,
         errorMessage: errorMessage,
         successMessage: successMessage,
       );
 
   @override
-  List<Object?> get props => [story, mode, isSaving, isDirty, errorMessage, successMessage];
+  List<Object?> get props =>
+      [story, mode, isSaving, isDirty, title, content, errorMessage, successMessage];
 }
