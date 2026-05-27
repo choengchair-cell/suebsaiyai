@@ -94,11 +94,15 @@ class _GlassNavBar extends ConsumerWidget implements PreferredSizeWidget {
                 ],
                 _LoginButton(user: user, ref: ref, context: context),
               ] else
-                // Mobile menu (hamburger — future: slide-in drawer)
-                IconButton(
-                  icon: const Icon(Icons.menu, color: AppColors.goldLight),
-                  onPressed: () {},
-                ),
+                // สำหรับ Mobile: ถ้าเข้าสู่ระบบแล้วสามารถใช้ PopupMenuProfile ย่อยตรงนี้ได้เลย
+                if (user != null)
+                  _LoginButton(user: user, ref: ref, context: context)
+                else
+                  // ปุ่มแฮมเบอร์เกอร์รองรับอนาคต
+                  IconButton(
+                    icon: const Icon(Icons.menu, color: AppColors.goldLight),
+                    onPressed: () {},
+                  ),
             ],
           ),
         ),
@@ -147,7 +151,7 @@ class _LoginButton extends ConsumerWidget {
             borderRadius: BorderRadius.circular(2),
             color: AppColors.primaryContainer,
           ),
-          child: Row(children: [
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.person_outline,
                 color: AppColors.goldLight, size: 16),
             const SizedBox(width: 6),
@@ -180,16 +184,18 @@ class _LoginButton extends ConsumerWidget {
           switch (v) {
             case 'dashboard':
               context.go(RouteConstants.dashboard);
+              break;
             case 'admin':
               context.go(RouteConstants.adminPanel);
+              break;
             case 'logout':
               ref.read(authNotifierProvider.notifier).signOut();
+              break;
           }
         },
       );
     }
 
-    // Not logged in — role-select dropdown
     return _RoleLoginButton();
   }
 
@@ -199,8 +205,7 @@ class _LoginButton extends ConsumerWidget {
         Icon(icon, color: color, size: 16),
         const SizedBox(width: 10),
         Text(label,
-            style:
-                GoogleFonts.sarabun(fontSize: 13, color: color)),
+            style: GoogleFonts.sarabun(fontSize: 13, color: color)),
       ]);
 }
 
@@ -241,7 +246,7 @@ class _RoleLoginButtonState extends State<_RoleLoginButton> {
           borderRadius: BorderRadius.circular(2),
           color: AppColors.primaryContainer,
         ),
-        child: Row(children: [
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
           const Text('🔐', style: TextStyle(fontSize: 13)),
           const SizedBox(width: 6),
           Text('เข้าสู่ระบบ',
@@ -323,13 +328,19 @@ class _BottomNav extends ConsumerWidget {
         const NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard),
-            label: 'ของฉัน'),
+            label: 'ของฉัน')
+      else
+        const NavigationDestination(
+            icon: Icon(Icons.login_outlined),
+            selectedIcon: Icon(Icons.login),
+            label: 'เข้าสู่ระบบ'),
     ];
 
     int idx = 0;
     if (location.startsWith('/explore')) idx = 1;
     if (location.startsWith('/search')) idx = 2;
     if (location.startsWith('/dashboard')) idx = 3;
+    if (location.startsWith('/login')) idx = user != null ? 0 : 3; // ป้องกัน idx เกินขนาดลิสต์
 
     return NavigationBar(
       selectedIndex: idx,
@@ -340,7 +351,7 @@ class _BottomNav extends ConsumerWidget {
           RouteConstants.home,
           RouteConstants.explore,
           RouteConstants.search,
-          if (user != null) RouteConstants.dashboard,
+          if (user != null) RouteConstants.dashboard else RouteConstants.login,
         ];
         if (i < routes.length) context.go(routes[i]);
       },
